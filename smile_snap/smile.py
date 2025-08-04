@@ -22,20 +22,24 @@ while True:
 
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
+    smile_detected = False
+
     for (x, y, w, h) in faces:
         roi_gray = gray[y:y + h, x:x + w]
         roi_color = frame[y:y + h, x:x + w]
 
         cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
-        smiles = smile_cascade.detectMultiScale(roi_gray, scaleFactor=1.8, minNeighbors=20)
+        smiles = smile_cascade.detectMultiScale(roi_gray, scaleFactor=1.7, minNeighbors=15, minSize=(25, 25))
 
         if len(smiles) > 0:
+            smile_detected = True
             if not countdown_started:
                 countdown_started = True
                 countdown_start_time = time.time()
-
-        else:
-            countdown_started = False
+    
+    if not smile_detected:
+          countdown_started = False
+        
 
     if countdown_started:
         elapsed = time.time() - countdown_start_time
@@ -51,16 +55,17 @@ while True:
             cv2.imwrite(filename, frame)
             print(f"Selfie Captured: {filename}")
             selfie_count +=1
-            last_captured_time = time.time()
+            last_capture_time = time.time()
 
             flash = np.ones_like(frame)*255
             cv2.imshow("Smile to Click Selfie", flash)
             cv2.waitKey(200)
 
             countdown_started = False
-        cv2.imshow("Smile to Click Selfie", frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+    cv2.imshow("Smile to Click Selfie", frame)
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
 cap.release()
